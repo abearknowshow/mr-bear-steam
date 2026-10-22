@@ -1,0 +1,15 @@
+{
+ "mac_host": "192.168.1.2",
+ "panel_host": "192.168.1.3",
+ "lan_prefix": "192.168.1.",
+ "bridge_id": "SPA02:00:00:00:00:01",
+ "light_thing": "su-02:00:00:00:00:02-dev",
+ "vendor_cloud": {
+  "region": "us-east-2",
+  "user_pool_id": "us-east-2_Ab12Cd34E",
+  "app_client_id": "1example2client3id4abcdefg",
+  "identity_pool_id": "us-east-2:00000000-1111-2222-3333-444444444444",
+  "iot_endpoint": "a1b2c3d4e5f6g7-ats.iot.us-east-2.amazonaws.com",
+  "devices_url": "https://abcde12345.execute-api.us-east-2.amazonaws.com/latest/user/get-user-devices"
+ }
+}

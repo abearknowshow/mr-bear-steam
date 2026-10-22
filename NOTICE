@@ -1,0 +1,19 @@
+Mr. Bear Steam
+Copyright (C) 2026 abearknowshow and contributors. Licensed under the GNU General Public License v3.0 (see LICENSE).
+
+Not affiliated with, endorsed by or supported by Mr. Steam. "Mr. Steam", "iSteamX" and "Steamlinx"
+are trademarks of their owners and are used only to describe compatibility.
+
+Protocol references
+- GeckoLib, https://github.com/gazoodle/geckolib (GPL-3.0), commit ae350064a9527bd5e6f5918b19d6d92034ea3f07.
+  The Steamlinx wire format and register layout used by controls/src/.../Protocol.java were learned from it.
+- MrSteam Home Assistant integration, https://github.com/pedantique/mrsteam-homeassistant (MIT),
+  commit 8b4f6abc675312ed8eb5c9833590fed93a6c145e. Reference for the cloud lighting service.
+
+Components fetched at build time (pinned with SHA-256 in controls/dependencies/lock.json) and bundled in the APK
+- AWS SDK for Android 2.81.1 (core, IoT, Cognito identity provider, ASF): Apache-2.0, with AWS's notices.
+- Eclipse Paho MQTT client 1.2.5: EPL-2.0 / EDL-1.0.
+- Conscrypt Android 2.5.3: Apache-2.0.
+- Gson 2.8.9: Apache-2.0.
+- Manrope font: SIL Open Font License 1.1.
+Full license texts and notices: controls/assets/notices/ (also packaged inside the APK).

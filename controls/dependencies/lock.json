@@ -1,0 +1,37 @@
+[
+  {
+    "name": "aws-android-sdk-core-2.81.1.aar",
+    "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-android-sdk-core/2.81.1/aws-android-sdk-core-2.81.1.aar",
+    "sha256": "6cf78a32b9240f66b843101d32b06b46a5c39f179cf3154a94b09b60a44ae6e0"
+  },
+  {
+    "name": "aws-android-sdk-iot-2.81.1.aar",
+    "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-android-sdk-iot/2.81.1/aws-android-sdk-iot-2.81.1.aar",
+    "sha256": "ec5fc9fa8cece745a19dc1bea78479a172b5daa3f365a4acdb0f9d08ebda3424"
+  },
+  {
+    "name": "aws-android-sdk-cognitoidentityprovider-2.81.1.aar",
+    "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-android-sdk-cognitoidentityprovider/2.81.1/aws-android-sdk-cognitoidentityprovider-2.81.1.aar",
+    "sha256": "01547cfb5d6c9798f3b28c1ecdda74fed2871aff48d32c97e7e8bfcc831289a8"
+  },
+  {
+    "name": "aws-android-sdk-cognitoidentityprovider-asf-2.81.1.aar",
+    "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-android-sdk-cognitoidentityprovider-asf/2.81.1/aws-android-sdk-cognitoidentityprovider-asf-2.81.1.aar",
+    "sha256": "6bb7b940ec6f760d51246061221a727b84566190899afafa8dd9242b2df3fdcb"
+  },
+  {
+    "name": "gson-2.8.9.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
+    "sha256": "d3999291855de495c94c743761b8ab5176cfeabe281a5ab0d8e8d45326fd703e"
+  },
+  {
+    "name": "org.eclipse.paho.client.mqttv3-1.2.5.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/eclipse/paho/org.eclipse.paho.client.mqttv3/1.2.5/org.eclipse.paho.client.mqttv3-1.2.5.jar",
+    "sha256": "59914287adac506a28d5e8172eed262a22605f3df4d426b9d92f41dae2448185"
+  },
+  {
+    "name": "conscrypt-android-2.5.3.aar",
+    "url": "https://repo.maven.apache.org/maven2/org/conscrypt/conscrypt-android/2.5.3/conscrypt-android-2.5.3.aar",
+    "sha256": "551ae4e301c571760d1791e647db6ed1dcb10d34dcae7aa12b67f220f2ce98d1"
+  }
+]

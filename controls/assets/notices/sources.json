@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Gson-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/google/gson/gson-parent-2.8.9/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "name": "Conscrypt-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/google/conscrypt/2.5.3/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "name": "Conscrypt-NOTICE.txt",
+    "url": "https://raw.githubusercontent.com/google/conscrypt/2.5.3/NOTICE",
+    "sha256": "378a858f72823759ec0cff19b32e70b7d355dbf8f5810df484dc5e3d60ea8dbd"
+  },
+  {
+    "name": "Paho-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/eclipse-paho/paho.mqtt.java/v1.2.5/LICENSE",
+    "sha256": "44ad51523c207de32beb8c329766523fe9b9cad379409299d16eb4e79046c46d"
+  },
+  {
+    "name": "Paho-EDL.txt",
+    "url": "https://raw.githubusercontent.com/eclipse-paho/paho.mqtt.java/v1.2.5/edl-v10",
+    "sha256": "83bbba033dc985487e321b6dfde111772affb73460be48726299fed3da684b1c"
+  },
+  {
+    "name": "AWS-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/aws-amplify/aws-sdk-android/main/LICENSE.txt",
+    "sha256": "8856296d9d122a1aa473ebedb3adb6195cf321f6f7ff55161cdcb68db9433d2b"
+  },
+  {
+    "name": "AWS-LICENSE.APACHE.txt",
+    "url": "https://raw.githubusercontent.com/aws-amplify/aws-sdk-android/main/LICENSE.APACHE.txt",
+    "sha256": "3a598fac2a10c9e103943eb78dd1d8f37debc8412ccd72a355c093465cbbd12c"
+  },
+  {
+    "name": "AWS-LICENSE.AMAZON.txt",
+    "url": "https://raw.githubusercontent.com/aws-amplify/aws-sdk-android/main/LICENSE.AMAZON.txt",
+    "sha256": "579f49b3579704faecee86074e0e83ff79d11e008a02e1731e6031795135c6ee"
+  },
+  {
+    "name": "AWS-NOTICE.txt",
+    "url": "https://raw.githubusercontent.com/aws-amplify/aws-sdk-android/main/NOTICE.txt",
+    "sha256": "6509fde4808544497b9d848f766b69a9190937472fd8255f516f106dce712454"
+  },
+  {
+    "name": "Paho-NOTICE.txt",
+    "url": "https://raw.githubusercontent.com/eclipse-paho/paho.mqtt.java/v1.2.5/NOTICE",
+    "sha256": "8e1de8a26386809f2d11714fc5f3fbdd47c4db4f2a9a5effc9e9e5ea57f99bc9"
+  },
+  {
+    "name": "Paho-EPL.txt",
+    "url": "https://raw.githubusercontent.com/eclipse-paho/paho.mqtt.java/v1.2.5/epl-v20",
+    "sha256": "721c2da257578bace3332b14d8ea06643d7d26753e7ef25a837b4e904edc0bf5"
+  }
+]

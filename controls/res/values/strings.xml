@@ -1,0 +1,3 @@
+<resources>
+ <string name="dashboard_access_description">Displays the Bear Steam dashboard above Mr. Steam so the original controller can stay active. This service does not read other apps, collect typed text, or perform gestures. It opens the dashboard when the screen wakes and once after a restart (turn that off in the dashboard Settings). It never operates the shower by itself. Return to Bear Steam after enabling. You can turn it off here at any time.</string>
+</resources>

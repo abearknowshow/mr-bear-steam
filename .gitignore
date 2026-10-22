@@ -1,0 +1,33 @@
+# Your household and vendor values. Never commit.
+household.json
+
+# Keys, certificates and tokens (make_certificate.py creates them per install)
+**/private/
+*.p12
+*.jks
+*.keystore
+*.key
+*.pem
+*.crt
+
+# Build output and fetched dependencies (fetch_dependencies.py pins and downloads them)
+**/build/
+*.apk
+*.idsig
+*.aar
+*.jar
+*.so
+*.zip
+controls/dependencies/*
+!controls/dependencies/lock.json
+SHA256.txt
+node_modules/
+__pycache__/
+*.pyc
+*.class
+
+# Panel captures, timelines and logs can hold identifiers
+*.log
+*.jsonl
+sync-result*.json
+.DS_Store

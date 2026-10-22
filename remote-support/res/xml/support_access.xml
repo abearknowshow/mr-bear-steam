@@ -1,0 +1,5 @@
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+ android:description="@string/support_description" android:accessibilityFeedbackType="feedbackGeneric" android:accessibilityEventTypes="typeWindowContentChanged|typeWindowStateChanged"
+ android:accessibilityFlags="flagRetrieveInteractiveWindows|flagReportViewIds|flagIncludeNotImportantViews"
+ android:canRetrieveWindowContent="true" android:canPerformGestures="true"
+ android:canRequestFilterKeyEvents="false" android:canControlMagnification="false"/>

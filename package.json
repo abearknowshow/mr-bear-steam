@@ -1,0 +1,9 @@
+{
+ "name": "mr-bear-steam",
+ "private": true,
+ "description": "Test tooling for Mr. Bear Steam. The app itself has no npm dependencies.",
+ "license": "GPL-3.0-only",
+ "devDependencies": {
+  "jsdom": "20.0.3"
+ }
+}
