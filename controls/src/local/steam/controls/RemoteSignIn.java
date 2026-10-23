@@ -50,7 +50,7 @@ public final class RemoteSignIn {
  }
  public void finish(String identity,String state){try{request("/result/"+identity,new JSONObject().put("state",state));}catch(Exception ignored){}}
  public void syncResult(String stage,LightReport report,ReadMetrics.Snapshot counts,String view,int attempt,String command)throws Exception{
-  JSONObject body=new JSONObject().put("build","0.24").put("stage",stage);
+  JSONObject body=new JSONObject().put("build","0.25").put("stage",stage);
   body.put("reportedOn",report==null?JSONObject.NULL:report.on);
   body.put("fresh",report!=null&&report.usable(System.currentTimeMillis()));
   body.put("messages",counts.messages).put("reported",counts.reported).put("lights",counts.lights).put("accepted",counts.accepted).put("kind",counts.kind);

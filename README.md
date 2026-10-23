@@ -14,7 +14,7 @@ A faster, cleaner dashboard for Mr. Steam iSteamX steam-shower wall panels. It r
 - **Lights:** On/Off, ten color presets, a custom color wheel, brightness and Disco. The panel remembers the last color you chose.
 - **Opens by itself:** when the screen wakes, and once about 45 seconds after the panel restarts. A 1.5 second guard ignores the tap that woke the screen (except Stop).
 - **Settings:** five accent colors, "Open this experience on wake", Bluetooth audio pairing steps, and one tap back to the original Mr. Steam app.
-- **Sleeps when idle:** with the steam off, the screen turns off after 5 minutes without a touch. Never while steam is running.
+- **Sleeps when idle:** with the steam off, the screen turns off after 5 minutes without a touch, or 3 minutes after a steam session ends. Never while steam is running.
 - **Black theme** designed for a 1024×600 wall panel.
 
 | | | |
@@ -29,7 +29,7 @@ Steam is controlled locally over the Steamlinx bridge on your home network (UDP)
 
 ## Status
 
-Version 0.24 runs daily on one iSteamX panel (Android 10, PX30). It has not been tried on any other panel, firmware or Mr. Steam model. If you try it, please open an issue with what you found, even if it did not work.
+Version 0.25 runs daily on one iSteamX panel (Android 10, PX30). It has not been tried on any other panel, firmware or Mr. Steam model. If you try it, please open an issue with what you found, even if it did not work.
 
 ## Getting started
 
@@ -58,7 +58,7 @@ Forks and pull requests are welcome. [ROADMAP.md](ROADMAP.md) lists ideas that a
 
 ## Credits
 
-- Built by [@abearknowshow](https://github.com/abearknowshow) with AI coding agents. Astra built the early versions (0.1 to roughly 0.15): the protocol, the overlay and the remote-support tooling. Claude Opus 5.5 in Claude Code took it from 0.16 to 0.24: speed, reliability, the new interface, start-on-wake and idle sleep.
+- Built by [@abearknowshow](https://github.com/abearknowshow) with AI coding agents. Astra built the early versions (0.1 to roughly 0.15): the protocol, the overlay and the remote-support tooling. Claude Opus 5.5 in Claude Code took it from 0.16 to 0.25: speed, reliability, the new interface, start-on-wake and idle sleep.
 - The Steamlinx wire format was learned from [gazoodle/geckolib](https://github.com/gazoodle/geckolib) (GPL-3.0), and the cloud lighting from [pedantique/mrsteam-homeassistant](https://github.com/pedantique/mrsteam-homeassistant) (MIT).
 - Third-party licenses are in [NOTICE](NOTICE) and `controls/assets/notices/`.
 

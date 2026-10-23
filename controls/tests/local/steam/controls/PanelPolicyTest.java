@@ -33,25 +33,38 @@ public final class PanelPolicyTest {
   check(PanelPolicy.commandAllowed("stop",t,until),"Stop is never guarded");
   check(PanelPolicy.commandAllowed("start",t,0),"no guard: Start allowed");
   // Keep-screen-on: steam running always; steam off only within five minutes of a touch.
-  check(PanelPolicy.keepScreenOn(true,t,0),"steam running keeps the screen on with no touch");
-  check(PanelPolicy.keepScreenOn(true,t+60*60_000L,t),"steam running keeps it on an hour after the last touch");
-  check(PanelPolicy.keepScreenOn(false,t+299_999,t),"just under five minutes after a touch stays on");
-  check(!PanelPolicy.keepScreenOn(false,t+300_000,t),"five minutes idle with steam off lets it sleep");
-  check(!PanelPolicy.keepScreenOn(false,t,0),"steam off and never touched may sleep");
-  check(!PanelPolicy.keepScreenOn(false,t,t+5),"a touch time in the future is ignored");
+  check(PanelPolicy.keepScreenOn(true,t,0,0),"steam running keeps the screen on with no touch");
+  check(PanelPolicy.keepScreenOn(true,t+60*60_000L,t,0),"steam running keeps it on an hour after the last touch");
+  check(PanelPolicy.keepScreenOn(false,t+299_999,t,0),"just under five minutes after a touch stays on");
+  check(!PanelPolicy.keepScreenOn(false,t+300_000,t,0),"five minutes idle with steam off lets it sleep");
+  check(!PanelPolicy.keepScreenOn(false,t,0,0),"steam off and never touched may sleep");
+  check(!PanelPolicy.keepScreenOn(false,t,t+5,0),"a touch time in the future is ignored");
   // 0.23 idle sleep: five idle minutes, steam confirmed off by a fresh reading; anything uncertain stays awake.
-  check(PanelPolicy.shouldSleep(false,true,2_000,t+300_000,t),"five idle minutes with steam confirmed off sleeps");
-  check(!PanelPolicy.shouldSleep(false,true,2_000,t+299_999,t),"just under five minutes stays awake");
-  check(!PanelPolicy.shouldSleep(true,true,2_000,t+3_600_000,t),"steam running or a command under way never sleeps");
-  check(!PanelPolicy.shouldSleep(false,false,2_000,t+3_600_000,t),"steam not confirmed off never sleeps");
-  check(!PanelPolicy.shouldSleep(false,true,10_001,t+300_000,t),"a stale reading never sleeps");
-  check(PanelPolicy.shouldSleep(false,true,10_000,t+300_000,t),"a reading exactly at the freshness limit counts");
-  check(!PanelPolicy.shouldSleep(false,true,-1,t+300_000,t),"no reading yet never sleeps");
-  check(!PanelPolicy.shouldSleep(false,true,2_000,t,0),"never touched or opened never sleeps");
-  check(!PanelPolicy.shouldSleep(false,true,2_000,t,t+5),"a touch time in the future never sleeps");
+  check(PanelPolicy.shouldSleep(false,true,2_000,t+300_000,t,0),"five idle minutes with steam confirmed off sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t+299_999,t,0),"just under five minutes stays awake");
+  check(!PanelPolicy.shouldSleep(true,true,2_000,t+3_600_000,t,0),"steam running or a command under way never sleeps");
+  check(!PanelPolicy.shouldSleep(false,false,2_000,t+3_600_000,t,0),"steam not confirmed off never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,10_001,t+300_000,t,0),"a stale reading never sleeps");
+  check(PanelPolicy.shouldSleep(false,true,10_000,t+300_000,t,0),"a reading exactly at the freshness limit counts");
+  check(!PanelPolicy.shouldSleep(false,true,-1,t+300_000,t,0),"no reading yet never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t,0,0),"never touched or opened never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t,t+5,0),"a touch time in the future never sleeps");
   boolean overlap=false;
-  for(long now=t;now<t+3_600_000;now+=1_000)overlap|=PanelPolicy.shouldSleep(false,true,2_000,now,t)&&PanelPolicy.keepScreenOn(false,now,t);
+  for(long now=t;now<t+3_600_000;now+=1_000)overlap|=PanelPolicy.shouldSleep(false,true,2_000,now,t,0)&&PanelPolicy.keepScreenOn(false,now,t,0);
   check(!overlap,"sleep and keep-screen-on never both hold in the hour after a touch");
+  // 0.25: three awake minutes after steam goes off, even long after the last touch.
+  long end=t+30*60_000L;
+  check(PanelPolicy.keepScreenOn(false,end,t,end),"steam just ended keeps the screen on 30 minutes after the last touch");
+  check(PanelPolicy.keepScreenOn(false,end+179_999,t,end),"just under three minutes after steam ends stays on");
+  check(!PanelPolicy.keepScreenOn(false,end+180_000,t,end),"three minutes after steam ends lets it sleep");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,end+179_999,t,end),"no idle sleep within three minutes of steam ending");
+  check(PanelPolicy.shouldSleep(false,true,2_000,end+180_000,t,end),"idle sleep three minutes after steam ends");
+  check(PanelPolicy.keepScreenOn(false,end+200_000,end+60_000,end)&&!PanelPolicy.shouldSleep(false,true,2_000,end+200_000,end+60_000,end),"a touch after steam ends still gets its five minutes");
+  check(!PanelPolicy.keepScreenOn(false,end,t,end+5)&&PanelPolicy.shouldSleep(false,true,2_000,end,t,end+5),"a steam-end time in the future is ignored");
+  check(!PanelPolicy.afterSteam(end,0),"no session ended since Bear opened: no extra time");
+  boolean overlapAfter=false;
+  for(long now=end;now<end+600_000;now+=1_000)overlapAfter|=PanelPolicy.shouldSleep(false,true,2_000,now,t,end)&&PanelPolicy.keepScreenOn(false,now,t,end);
+  check(!overlapAfter,"sleep and keep-screen-on never both hold in the ten minutes after steam ends");
   // Accent: only the five offered values, stored in one canonical form.
   check("#FFFFFF".equals(PanelPolicy.accent("#ffffff")),"white in any case");
   check("#FF9900".equals(PanelPolicy.accent(" #ff9900 ")),"orange, trimmed");

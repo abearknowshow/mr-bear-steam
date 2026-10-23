@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
  *  Recording never throws, blocks on I/O or changes control flow. Values are numbers, booleans or
  *  short scrubbed strings: no credentials, tokens, account ids, thing names, IPs or MACs. */
 public final class Timeline {
- public static final String BUILD="0.24";
+ public static final String BUILD="0.25";
  public static final int CAPACITY=2000,BATCH=250,BATCH_BYTES=96*1024,MAX_TEXT=120,MAX_FIELDS=16;
  public interface Clock{long mono();long wall();}
  private static final Clock SYSTEM=new Clock(){public long mono(){return System.nanoTime()/1000000;}public long wall(){return System.currentTimeMillis();}};

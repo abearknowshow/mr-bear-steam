@@ -4,6 +4,8 @@ public final class BridgeTransport implements ControlEngine.Transport {
  interface Locator{String locate()throws Exception;}interface Factory{ControlEngine.Transport create(String host)throws Exception;}
  /** Whether the bridge Bear last used still answers as the owner SPA (one quick HELLO, no network-wide search). */
  interface Confirmer{boolean confirm(String host);}
+ /** A transport that can switch to a new client identity (UdpTransport). */
+ interface Renewable{void freshIdentity();}
  private final Locator locator;private final Factory factory;private final Confirmer confirmer;
  private ControlEngine.Transport current,stopTarget,lastTransport;private String lastHost;private int failures;private boolean verified;
  public BridgeTransport(boolean writes){this(()->new BridgeLocator().locate(),host->new UdpTransport(host,10022,writes),host->new BridgeLocator().confirm(host));}
@@ -23,7 +25,7 @@ public final class BridgeTransport implements ControlEngine.Transport {
    if(candidate==null&&lastHost!=null&&lastTransport!=null){
     long started=System.nanoTime();boolean ok=confirmer.confirm(lastHost);
     Timeline.note("bridge.relink","ok",ok,"ms",(System.nanoTime()-started)/1000000);
-    if(ok)candidate=lastTransport;
+    if(ok){candidate=lastTransport;renew(candidate,"relink");}
    }
    if(candidate==null){
     // Rediscovery usually finds the same bridge; reusing its transport keeps the cached full map,
@@ -35,6 +37,7 @@ public final class BridgeTransport implements ControlEngine.Transport {
     boolean sameHost=host.equals(lastHost),reused=sameHost&&lastTransport!=null;
     candidate=host.equals(lastHost)&&lastTransport!=null?lastTransport:factory.create(host);
     Timeline.note("bridge.locate.end","ok",true,"ms",(System.nanoTime()-started)/1000000,"sameHost",sameHost,"reused",reused);
+    if(reused)renew(candidate,"search");
     lastHost=host;lastTransport=candidate;candidate.abandonReadsWhen(abandon);candidate.refreshMapWhen(idle);
    }
    // UdpTransport verifies the known SPA envelope, register map and complete status.
@@ -48,6 +51,11 @@ public final class BridgeTransport implements ControlEngine.Transport {
    else Timeline.note("bridge.fail","failures",failures,"abandon",abandon.getAsBoolean());
    throw failure;
   }
+ }
+ // 0.25 experiment (issue #8): the bridge answered HELLO but not status, so the same bridge comes back with a new client id.
+ // Never the id itself in the timeline.
+ private static void renew(ControlEngine.Transport t,String after){
+  if(t instanceof Renewable){((Renewable)t).freshIdentity();Timeline.note("bridge.newid","after",after);}
  }
  public synchronized boolean write(String action,int value)throws Exception{
   // Only Stop may follow a lost read; every other command needs the latest read to have succeeded.

@@ -22,7 +22,9 @@ public final class DashboardService extends Service {
  private final BroadcastReceiver screenOff=new BroadcastReceiver(){public void onReceive(Context c,Intent i){Timeline.note("screen.off");closeDashboard();}};
  private WebView web;private Button account;private TextView accountIssue,notice;private LinearLayout nav;private ControlEngine engine;
  // 0.21: the guard after an automatic open, the last touch on Bear (keep-screen-on), and why the page cannot help.
- private volatile long guardUntil,lastTouch;private long sleptForTouch;private volatile String problem="";private PanelSettings settings;private volatile boolean pageReady;
+ private volatile long guardUntil,lastTouch;private long sleptForTouch;
+ // 0.25: when steam last went from running to off (elapsedRealtime), for the three awake minutes after a session.
+ private volatile long steamEnded;private volatile boolean steamWasActive;private volatile String problem="";private PanelSettings settings;private volatile boolean pageReady;
  private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor();
  private volatile boolean active,armed,busy,stopRequested;private volatile long epoch,engineEpoch,lastSuccess;
  private volatile String cached="{\"connected\":false,\"armed\":false}";
@@ -136,19 +138,23 @@ public final class DashboardService extends Service {
   boolean was=connected;connected=value;
   if(was!=value)Timeline.note("conn","to",value,"cause",cause,"lastOkAgoMs",lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess);
  }
- /** Steam running, or a Start or Stop under way, keeps the screen on; otherwise five minutes after the last touch. */
+ /** Steam running, or a Start or Stop under way, keeps the screen on; otherwise five minutes after the last touch
+  *  or three minutes after steam goes off, whichever is later. */
  private void updateScreenOn(){
   Protocol.Status s=engine==null?null:engine.latest;
   final boolean steamActive=(s!=null&&s.possiblyOn())||busy||(engine!=null&&engine.startUncertain);
   final long now=android.os.SystemClock.elapsedRealtime(),touch=lastTouch;
-  final boolean on=PanelPolicy.keepScreenOn(steamActive,now,touch);
+  if(steamWasActive&&!steamActive){steamEnded=now;Timeline.note("screen.after_steam","awakeMs",PanelPolicy.AFTER_STEAM_MS);}
+  steamWasActive=steamActive;
+  final long ended=steamEnded,idleSince=Math.max(touch,ended);
+  final boolean on=PanelPolicy.keepScreenOn(steamActive,now,touch,ended);
   final boolean knownOff=s!=null&&!s.possiblyOn()&&!s.sessionActive();
-  final boolean sleep=PanelPolicy.shouldSleep(steamActive,knownOff,lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess,now,touch);
+  final boolean sleep=PanelPolicy.shouldSleep(steamActive,knownOff,lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess,now,touch,ended);
   runOnUiThread(()->{
    if(windows==null||!active)return;
    if(windows.keepScreenOn(on))Timeline.note("screen.keep_on","on",on,"steam",steamActive);
-   // 0.23: one sleep request per idle stretch; a new touch allows the next one.
-   if(sleep&&sleptForTouch!=touch){sleptForTouch=touch;DashboardAccessService host=DashboardAccessService.host();
+   // 0.23: one sleep request per idle stretch; a new touch (or, since 0.25, a session ending) allows the next one.
+   if(sleep&&sleptForTouch!=idleSince){sleptForTouch=idleSince;DashboardAccessService host=DashboardAccessService.host();
     Timeline.note("screen.sleep","ok",host!=null&&host.sleepScreen(),"idleMs",now-touch);}
   });
  }

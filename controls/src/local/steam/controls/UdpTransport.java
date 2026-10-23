@@ -5,13 +5,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** Fixed owner bridge. No broadcast, pairing, discovery, cloud or incoming server. */
-public final class UdpTransport implements ControlEngine.Transport {
+public final class UdpTransport implements ControlEngine.Transport,BridgeTransport.Renewable {
  private final InetAddress address;private final int port;private final boolean writesEnabled;private boolean formatKnown;
  private int commandSequence=191;
  // One client identity for every read and command of this transport. The bridge dropped exactly 1 in 5 requests
  // from a new identity and none from a kept one (read-only probe, 2026-10-21: 60/75 vs 75/75). Each request still
  // gets its own socket, so a late reply to an earlier request arrives at a closed port and cannot mix into a new read.
- private final String clientId="IOS"+UUID.randomUUID().toString();
+ // 0.25 experiment (issue #8): right after a command the bridge kept answering HELLO but ignored this id's status
+ // requests for 15-20 s. BridgeTransport asks for a new id after each relink so the timeline shows whether a new id is answered.
+ private volatile String clientId="IOS"+UUID.randomUUID().toString();
+ /** A new client identity for every later read and command (BridgeTransport.Renewable). */
+ public void freshIdentity(){clientId="IOS"+UUID.randomUUID().toString();}
  private synchronized int nextCommandSequence(){commandSequence=commandSequence==255?192:commandSequence+1;return commandSequence;}
  public UdpTransport(String host,int port,boolean enableWrites)throws Exception{address=InetAddress.getByName(host);this.port=port;writesEnabled=enableWrites;}
  private static long now(){return System.nanoTime()/1000000;}

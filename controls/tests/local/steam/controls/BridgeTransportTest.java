@@ -2,7 +2,8 @@ package local.steam.controls;
 import java.nio.file.*;import java.util.*;
 public final class BridgeTransportTest {
  static int checks;static void check(boolean yes,String why){checks++;if(!yes)throw new AssertionError(why);}interface Work{void run()throws Exception;}static void fails(Work w)throws Exception{try{w.run();throw new AssertionError("Expected rejection");}catch(AssertionError e){throw e;}catch(Exception expected){checks++;}}
- static final class Fake implements ControlEngine.Transport{Protocol.Status status;boolean fail;List<String>writes=new ArrayList<>();Fake(Protocol.Status s){status=s;}java.util.function.BooleanSupplier abandon,idle;public void abandonReadsWhen(java.util.function.BooleanSupplier a){abandon=a;}public void refreshMapWhen(java.util.function.BooleanSupplier i){idle=i;}public Protocol.Status read()throws Exception{if(fail)throw new Exception("unreachable/map invalid");return status;}public boolean write(String a,int v){writes.add(a+":"+v);return true;}}
+ static class Fake implements ControlEngine.Transport{Protocol.Status status;boolean fail;List<String>writes=new ArrayList<>();Fake(Protocol.Status s){status=s;}java.util.function.BooleanSupplier abandon,idle;public void abandonReadsWhen(java.util.function.BooleanSupplier a){abandon=a;}public void refreshMapWhen(java.util.function.BooleanSupplier i){idle=i;}public Protocol.Status read()throws Exception{if(fail)throw new Exception("unreachable/map invalid");return status;}public boolean write(String a,int v){writes.add(a+":"+v);return true;}}
+ static final class Renew extends Fake implements BridgeTransport.Renewable{int ids;Renew(Protocol.Status s){super(s);}public void freshIdentity(){ids++;}}
  public static void main(String[]args)throws Exception{
   Protocol.Status status=Protocol.decode(Files.readAllBytes(Paths.get(args[0])));Fake old=new Fake(status),next=new Fake(status);String[]address={"old"};int[]locates={0};
   BridgeTransport t=new BridgeTransport(()->{locates[0]++;return address[0];},a->a.equals("old")?old:next);
@@ -35,6 +36,18 @@ public final class BridgeTransportTest {
   moved.writes.clear();k.write("temperature",110);check(moved.writes.equals(Arrays.asList("temperature:110"))&&kept.writes.size()==1,"Writes follow the bridge the search found");
   kept.fail=false;moved.fail=true;fails(k::read);fails(k::read);answers[0]=true;moved.fail=false;k.read();
   check(hellos[0]==3&&searches[0]==3,"The greeting goes to the bridge last used, not an earlier one");
+  // 0.25 experiment (issue #8): a bridge brought back after a reset gets a new client id; a first find or a new bridge does not.
+  Renew home=new Renew(status),away=new Renew(status);int[]searched={0};boolean[]greets={true};String[]at={"home"};
+  BridgeTransport n=new BridgeTransport(()->{searched[0]++;return at[0];},a->a.equals("home")?home:away,a->greets[0]&&a.equals(at[0]));
+  n.read();check(home.ids==0,"The first find keeps its id");
+  home.fail=true;fails(n::read);check(home.ids==0,"One lost read keeps the id");fails(n::read);home.fail=false;n.read();
+  check(home.ids==1&&searched[0]==1,"A relink to the same bridge gets one new id");
+  n.read();n.read();check(home.ids==1,"Good reads keep the new id");
+  home.fail=true;fails(n::read);fails(n::read);greets[0]=false;home.fail=false;n.read();
+  check(home.ids==2&&searched[0]==2,"A search that finds the same bridge also gets a new id");
+  home.fail=true;fails(n::read);fails(n::read);at[0]="away";n.read();
+  check(home.ids==2&&away.ids==0,"A different bridge starts with its own id; the old one is left alone");
+  n.write("temperature",112);check(away.writes.equals(Arrays.asList("temperature:112")),"Commands still follow the verified bridge");
   Fake invalid=new Fake(status);invalid.fail=true;BridgeTransport bad=new BridgeTransport(()->"bad",a->invalid);fails(bad::read);fails(()->bad.write("stop",0));check(invalid.writes.isEmpty(),"Unvalidated candidate never becomes stop target");
   check(BridgeLocator.matches(("<HELLO>"+Protocol.SPA+"|My Steamer</HELLO>").getBytes("UTF-8"),"192.168.1.9",10022),"Exact owner accepted");
   check(!BridgeLocator.matches("<HELLO>SPA00:11:22:33:44:55|Other</HELLO>".getBytes("UTF-8"),"192.168.1.9",10022),"Foreign identity refused");
