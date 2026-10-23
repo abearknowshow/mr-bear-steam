@@ -23,7 +23,7 @@ The iSteamX wall panel is an Android 10 tablet (PX30) whose home screen is the M
 - **`CloudLights`, `ShadowRead`, `LightPayload`, `LightReport`** sign in to the same Mr. Steam account and change only the lighting state of the one panel that matches `household.json`.
 - **`DashboardService` + `assets/index.html` + `assets/live.js`** draw the dashboard. The page talks to Java through a narrow bridge of nine methods. Nothing in the page reaches the network.
 - **`DashboardAccessService` + `OverlayWindows`** host the window and open it on wake and after a restart.
-- **`PanelPolicy` + `PanelSettings`** hold the rules (guard, keep-screen-on, idle sleep, open on wake) and the few stored settings (accent, open on wake, last light color).
+- **`PanelPolicy` + `PanelSettings`** hold the rules (guard, keep-screen-on, idle sleep and the 3 awake minutes after a session, open on wake) and the few stored settings (accent, open on wake, last light color).
 - **`RemoteSignIn` + `setup_server.py`** do a one-time sign-in from your Mac, so nobody types a password on a wet wall panel.
 - **`Timeline`** keeps a scrubbed ring of 2,000 diagnostic events on the panel. They upload over pinned TLS to your Mac, where `agent-tools/timeline/bear_timeline.py` reads them.
 
@@ -36,6 +36,7 @@ The iSteamX wall panel is an Android 10 tablet (PX30) whose home screen is the M
 | Stop failed in 0.1 | Every command reused sequence number 1 | Advancing sequence numbers. Only Stop may be resent. |
 | About 1 in 5 bridge requests silently dropped (60 of 75) | The bridge drops requests from a **new** client id | Keep one client id per transport: 75 of 75 in a read-only test. In daily use about 1 read in 25 still misses; see [#8](https://github.com/abearknowshow/mr-bear-steam/issues/8). |
 | After two misses, a 1.8 s network search that always found the same bridge | Rediscovery on every reset | Greet the last bridge first (about 20 ms) and search only if it stays silent; retry a missed read after 0.25 s; show "Reconnecting…" after 10 s instead of 6 (0.24). On the panel, "Reconnecting…" time fell from about 4–7% to about 2%. |
+| The bridge stops answering status for 10–40 s at a time while still answering HELLO, sometimes with no command nearby | Unknown; it ignores every client then, not one id (0.25 tried a fresh id on each relink and it made no difference) | With steam confirmed off and nothing waiting, Bear stays quiet for up to a minute instead of showing "Reconnecting…" (0.26). Start still makes its own fresh read and refuses without one; Stop always works. Tracked in [#8](https://github.com/abearknowshow/mr-bear-steam/issues/8). |
 | Reads came back with another reader's data | The bridge mixes up concurrent readers | Never run a second reader while Bear is open. |
 | Full status read took 3.7 to 4 s | Reading the whole register map | Read the 42-byte live block instead: about 300 ms. |
 | The bridge's address changed (DHCP) | Home network | Discover the bridge by its identity on your subnet. Writes never trigger discovery. |

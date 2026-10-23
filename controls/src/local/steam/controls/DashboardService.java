@@ -43,7 +43,7 @@ public final class DashboardService extends Service {
  // 0.18 timeline (telemetry only). Uploads run on their own thread, never the steam worker.
  private final ScheduledExecutorService timelineWorker=Executors.newSingleThreadScheduledExecutor();
  private long timelineSent;private boolean timelineFailing;private RemoteSignIn timelineLink;
- private boolean shownConnected;private String lastStateKey="",lastLightKey="";
+ private boolean shownConnected,quietCovering;private String lastStateKey="",lastLightKey="";
  private final Object uiTraceLock=new Object();private long uiTraceWindow;private int uiTraceCount;
  @Override public void onCreate(){
   super.onCreate();
@@ -323,14 +323,17 @@ public final class DashboardService extends Service {
  private synchronized void publish(){
   try{
    // Driven by the age of the last good read, not the last poll, so one lost read does not flash "Reconnecting…".
-   boolean shown=StatusGrace.shown(System.currentTimeMillis(),lastSuccess);
-   JSONObject j=new JSONObject();j.put("cloudReady",cloud!=null&&cloud.ready);j.put("cloudBusy",cloudBusy.get());j.put("lightError",lightError);j.put("lightDelivered",lightDelivered);j.put("connected",shown);j.put("at",lastSuccess);j.put("armed",armed&&active);j.put("busy",busy);j.put("operation",operation);j.put("error",error);j.put("errorAction",errorAction);
+   long nowMs=System.currentTimeMillis();Protocol.Status last=engine==null?null:engine.latest;
+   // 0.26: with steam confirmed off and nothing waiting, a silent bridge stays quiet for up to a minute (StatusGrace.QUIET_MS).
+   boolean quiet=StatusGrace.quiet(nowMs,lastSuccess,last!=null&&!last.possiblyOn()&&!last.sessionActive(),!busy&&!stopRequested&&(engine==null||!engine.startUncertain));
+   boolean graced=StatusGrace.shown(nowMs,lastSuccess),shown=graced||quiet;
+   JSONObject j=new JSONObject();j.put("quiet",quiet);j.put("cloudReady",cloud!=null&&cloud.ready);j.put("cloudBusy",cloudBusy.get());j.put("lightError",lightError);j.put("lightDelivered",lightDelivered);j.put("connected",shown);j.put("at",lastSuccess);j.put("armed",armed&&active);j.put("busy",busy);j.put("operation",operation);j.put("error",error);j.put("errorAction",errorAction);
    j.put("lightPending",lightPending);j.put("guarded",PanelPolicy.guarded(android.os.SystemClock.elapsedRealtime(),guardUntil));
    LightReport r=cloud==null?null:cloud.report;
    if(r!=null)j.put("lightReport",new JSONObject().put("on",r.on).put("at",r.at).put("freshUntil",r.freshUntil));
    if(engine!=null){j.put("unsafeStart",engine.startUncertain);j.put("runtimeBlocked",engine.runtimeBlocked);Protocol.Status s=engine.latest;if(s!=null){JSONObject d=new JSONObject();d.put("on",s.on);d.put("possiblyOn",s.possiblyOn());d.put("heater",s.heater);d.put("paused",s.paused);d.put("diagnostic",s.diagnostic);d.put("requestedMode",s.requestedMode);d.put("targetF",s.targetF);d.put("roomF",s.roomF);d.put("minutes",s.requestedMinutes);d.put("remaining",s.remaining);d.put("maxMinutes",s.maxMinutes);d.put("minF",s.minF);d.put("maxF",s.maxF);d.put("lightOn",s.lightOn);d.put("fault",s.error);d.put("program",s.program);j.put("snapshot",d);}}
    cached=j.toString();
-   traceState(shown);
+   traceState(shown,quiet&&!graced);
   }catch(Exception ignored){}
   runOnUiThread(()->{
    boolean needsAccount=cloud!=null&&!cloud.ready&&!cloudBusy.get();
@@ -342,12 +345,14 @@ public final class DashboardService extends Service {
   });
  }
  /** Called from publish() (synchronized): what the page will be told, recorded only when it changes. */
- private void traceState(boolean shown){
+ private void traceState(boolean shown,boolean covering){
   if(shown!=shownConnected){
    shownConnected=shown;long age=lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess;
    // The page shows "Reconnecting…" while connected is false and the last good read is under 20 s old.
    Timeline.note("ui.connected","to",shown,"field",connected,"lastOkAgoMs",age,"why",shown?"read ok within grace":"no good read for "+StatusGrace.GRACE_MS/1000+" s");
   }
+  // 0.26: when the quiet window starts and stops hiding a silent bridge (steam off, nothing waiting).
+  if(covering!=quietCovering){quietCovering=covering;Timeline.note("ui.quiet","on",covering,"lastOkAgoMs",lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess);}
   Protocol.Status s=engine==null?null:engine.latest;
   String key=s==null?"none":s.on+"|"+s.possiblyOn()+"|"+s.sessionActive()+"|"+s.requestedMode+"|"+s.remaining+"|"+s.requestedMinutes+"|"+s.targetF+"|"+s.roomF+"|"+s.lightOn+"|"+s.error+"|"+s.heater+"|"+error+"|"+errorAction+"|"+lightError;
   if(!key.equals(lastStateKey)){

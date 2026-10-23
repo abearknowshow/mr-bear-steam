@@ -24,7 +24,7 @@ public final class TimelineTest {
   Timeline.Batch b=t.batch(0,Timeline.BATCH,Timeline.BATCH_BYTES);
   check(b.count==250&&b.lost==3000,"A lagging cursor learns how many events it lost");
   JsonObject j=parse(b.json);
-  check(j.get("v").getAsInt()==1&&j.get("build").getAsString().equals("0.25")&&j.get("run").getAsLong()==clock.wall&&j.get("lost").getAsLong()==3000,"Batch envelope: v, build, run, lost");
+  check(j.get("v").getAsInt()==1&&j.get("build").getAsString().equals("0.26")&&j.get("run").getAsLong()==clock.wall&&j.get("lost").getAsLong()==3000,"Batch envelope: v, build, run, lost");
   check(new TreeSet<>(j.keySet()).equals(new TreeSet<>(Arrays.asList("v","build","run","lost","events"))),"Batch carries exactly the envelope keys");
   JsonArray events=j.getAsJsonArray("events");check(events.size()==250,"Batch holds max events");
   JsonObject first=events.get(0).getAsJsonObject();
