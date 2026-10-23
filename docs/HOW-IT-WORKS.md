@@ -23,7 +23,7 @@ The iSteamX wall panel is an Android 10 tablet (PX30) whose home screen is the M
 - **`CloudLights`, `ShadowRead`, `LightPayload`, `LightReport`** sign in to the same Mr. Steam account and change only the lighting state of the one panel that matches `household.json`.
 - **`DashboardService` + `assets/index.html` + `assets/live.js`** draw the dashboard. The page talks to Java through a narrow bridge of nine methods. Nothing in the page reaches the network.
 - **`DashboardAccessService` + `OverlayWindows`** host the window and open it on wake and after a restart.
-- **`PanelPolicy` + `PanelSettings`** hold the rules (guard, keep-screen-on, open on wake) and the few stored settings (accent, open on wake, last light color).
+- **`PanelPolicy` + `PanelSettings`** hold the rules (guard, keep-screen-on, idle sleep, open on wake) and the few stored settings (accent, open on wake, last light color).
 - **`RemoteSignIn` + `setup_server.py`** do a one-time sign-in from your Mac, so nobody types a password on a wet wall panel.
 - **`Timeline`** keeps a scrubbed ring of 2,000 diagnostic events on the panel. They upload over pinned TLS to your Mac, where `agent-tools/timeline/bear_timeline.py` reads them.
 
@@ -42,6 +42,7 @@ The iSteamX wall panel is an Android 10 tablet (PX30) whose home screen is the M
 | Cloud status reads returned HTTP 403 | Account permissions | Use the live MQTT update stream instead. |
 | Setting a light to the state it already had never confirmed | No change means no report | Show "unchanged" instead of waiting. |
 | Light color reset to Amber after every wake | The light reports only on/off, never its color | Remember the last chosen color on the panel (0.22). |
+| Screen never went to sleep with Bear open | The panel's own screen timeout never fires; Mr. Steam's idle screen only counts touches on its own app | After 5 minutes without a touch, and only with the steam confirmed off by a fresh reading, Bear turns the screen off itself through its accessibility service (0.23). Mr. Steam stops steam when the screen goes off, so Bear never does this while steam may be running. |
 | Chrome kept closing | Mr. Steam presses Back once a second while Chrome is in front | Bear never needs Chrome. See ROADMAP for in-app updates. |
 | Page blank on the test emulator | Android 10's stock WebView is Chrome 74 (no `??`, no grid inside buttons) | Write the page for Chrome 74. A test fails the build if newer syntax slips in. |
 

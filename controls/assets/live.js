@@ -17,7 +17,7 @@ const PRESETS=[
  {id:'warm',name:'Warm white',hue:36,saturation:22},{id:'cool',name:'Cool white',hue:0,saturation:0},{id:'amber',name:'Amber',hue:33,saturation:58},
  {id:'red',name:'Red',hue:2,saturation:72},{id:'pink',name:'Pink',hue:330,saturation:58},{id:'violet',name:'Violet',hue:262,saturation:62},
  {id:'blue',name:'Blue',hue:214,saturation:70},{id:'aqua',name:'Aqua',hue:177,saturation:72},{id:'green',name:'Green',hue:143,saturation:65},{id:'disco',name:'Disco'}];
-let prefs={accent:'#FFFFFF',openOnWake:true,version:'0.22'};
+let prefs={accent:'#FFFFFF',openOnWake:true,version:'0.23'};
 // Only device telemetry selects the power state. Preferences and PUBACK cannot.
 function selectedLight(){const r=status.lightReport,now=Date.now();return r&&typeof r.on==='boolean'&&now>=r.at&&now<r.freshUntil?r.on:null;}
 function native(){return window.SteamNative||null;}
@@ -198,7 +198,7 @@ function renderSettings(known,online,live,light){
  $('wake-toggle').setAttribute('aria-checked',String(Boolean(prefs.openOnWake)));
  $('steam-conn').dataset.ok=String(live);$('steam-conn-text').textContent=!known?'Connecting…':live?'Connected':online?'Reconnecting…':'Not connected';
  $('light-conn').dataset.ok=String(Boolean(status.cloudReady));$('light-conn-text').textContent=status.cloudReady?(light===null?'Connected · status unavailable':'Connected'):status.cloudBusy?'Connecting…':'Not connected';
- $('version-label').textContent='Mr. Bear Steam '+(prefs.version||'0.22');
+ $('version-label').textContent='Mr. Bear Steam '+(prefs.version||'0.23');
 }
 
 function hsvRgb(hue,saturation){

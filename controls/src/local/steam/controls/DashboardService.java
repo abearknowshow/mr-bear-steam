@@ -22,7 +22,7 @@ public final class DashboardService extends Service {
  private final BroadcastReceiver screenOff=new BroadcastReceiver(){public void onReceive(Context c,Intent i){Timeline.note("screen.off");closeDashboard();}};
  private WebView web;private Button account;private TextView accountIssue,notice;private LinearLayout nav;private ControlEngine engine;
  // 0.21: the guard after an automatic open, the last touch on Bear (keep-screen-on), and why the page cannot help.
- private volatile long guardUntil,lastTouch;private volatile String problem="";private PanelSettings settings;private volatile boolean pageReady;
+ private volatile long guardUntil,lastTouch;private long sleptForTouch;private volatile String problem="";private PanelSettings settings;private volatile boolean pageReady;
  private final ScheduledExecutorService worker=Executors.newSingleThreadScheduledExecutor();
  private volatile boolean active,armed,busy,stopRequested;private volatile long epoch,engineEpoch,lastSuccess;
  private volatile String cached="{\"connected\":false,\"armed\":false}";
@@ -128,8 +128,17 @@ public final class DashboardService extends Service {
  private void updateScreenOn(){
   Protocol.Status s=engine==null?null:engine.latest;
   final boolean steamActive=(s!=null&&s.possiblyOn())||busy||(engine!=null&&engine.startUncertain);
-  final boolean on=PanelPolicy.keepScreenOn(steamActive,android.os.SystemClock.elapsedRealtime(),lastTouch);
-  runOnUiThread(()->{if(windows!=null&&active&&windows.keepScreenOn(on))Timeline.note("screen.keepOn","on",on,"steam",steamActive);});
+  final long now=android.os.SystemClock.elapsedRealtime(),touch=lastTouch;
+  final boolean on=PanelPolicy.keepScreenOn(steamActive,now,touch);
+  final boolean knownOff=s!=null&&!s.possiblyOn()&&!s.sessionActive();
+  final boolean sleep=PanelPolicy.shouldSleep(steamActive,knownOff,lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess,now,touch);
+  runOnUiThread(()->{
+   if(windows==null||!active)return;
+   if(windows.keepScreenOn(on))Timeline.note("screen.keep_on","on",on,"steam",steamActive);
+   // 0.23: one sleep request per idle stretch; a new touch allows the next one.
+   if(sleep&&sleptForTouch!=touch){sleptForTouch=touch;DashboardAccessService host=DashboardAccessService.host();
+    Timeline.note("screen.sleep","ok",host!=null&&host.sleepScreen(),"idleMs",now-touch);}
+  });
  }
  private void original(){
   armed=false;active=false;epoch++;Timeline.note("dash.hide","to","original");publish();

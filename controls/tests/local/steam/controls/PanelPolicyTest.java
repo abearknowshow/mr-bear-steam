@@ -39,6 +39,19 @@ public final class PanelPolicyTest {
   check(!PanelPolicy.keepScreenOn(false,t+300_000,t),"five minutes idle with steam off lets it sleep");
   check(!PanelPolicy.keepScreenOn(false,t,0),"steam off and never touched may sleep");
   check(!PanelPolicy.keepScreenOn(false,t,t+5),"a touch time in the future is ignored");
+  // 0.23 idle sleep: five idle minutes, steam confirmed off by a fresh reading; anything uncertain stays awake.
+  check(PanelPolicy.shouldSleep(false,true,2_000,t+300_000,t),"five idle minutes with steam confirmed off sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t+299_999,t),"just under five minutes stays awake");
+  check(!PanelPolicy.shouldSleep(true,true,2_000,t+3_600_000,t),"steam running or a command under way never sleeps");
+  check(!PanelPolicy.shouldSleep(false,false,2_000,t+3_600_000,t),"steam not confirmed off never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,10_001,t+300_000,t),"a stale reading never sleeps");
+  check(PanelPolicy.shouldSleep(false,true,10_000,t+300_000,t),"a reading exactly at the freshness limit counts");
+  check(!PanelPolicy.shouldSleep(false,true,-1,t+300_000,t),"no reading yet never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t,0),"never touched or opened never sleeps");
+  check(!PanelPolicy.shouldSleep(false,true,2_000,t,t+5),"a touch time in the future never sleeps");
+  boolean overlap=false;
+  for(long now=t;now<t+3_600_000;now+=1_000)overlap|=PanelPolicy.shouldSleep(false,true,2_000,now,t)&&PanelPolicy.keepScreenOn(false,now,t);
+  check(!overlap,"sleep and keep-screen-on never both hold in the hour after a touch");
   // Accent: only the five offered values, stored in one canonical form.
   check("#FFFFFF".equals(PanelPolicy.accent("#ffffff")),"white in any case");
   check("#FF9900".equals(PanelPolicy.accent(" #ff9900 ")),"orange, trimmed");

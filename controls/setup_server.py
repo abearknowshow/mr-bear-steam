@@ -33,7 +33,7 @@ FORM_ORIGIN = 'http://127.0.0.1:8776'
 def sync_result(body):
     """Deliberately no arbitrary logs, tokens, shadow documents or account identifiers."""
     keys = {'build', 'stage', 'reportedOn', 'fresh'}
-    if body.get('build') in {'0.10', '0.11', '0.12', '0.13', '0.14', '0.15', '0.16', '0.17', '0.18', '0.19', '0.20', '0.21', '0.22'}:
+    if body.get('build') in {'0.10', '0.11', '0.12', '0.13', '0.14', '0.15', '0.16', '0.17', '0.18', '0.19', '0.20', '0.21', '0.22', '0.23'}:
         keys |= {'messages', 'reported', 'lights', 'accepted', 'kind', 'view', 'attempt', 'command'}
         for key in ('messages', 'reported', 'lights', 'accepted', 'attempt'):
             if type(body.get(key)) is not int or not 0 <= body[key] <= 1000000:
@@ -42,7 +42,7 @@ def sync_result(body):
             raise ValueError('Invalid sync result')
         if body.get('view') not in {'bear', 'original-watch', 'bear-overlay', 'original-visible'} or body.get('command') not in {'idle', 'sending', 'cloud-received', 'unconfirmed', 'confirmed', 'unchanged', 'failed'}:
             raise ValueError('Invalid sync result')
-    if set(body) != keys or body['build'] not in {'0.7', '0.8', '0.9', '0.10', '0.11', '0.12', '0.13', '0.14', '0.15', '0.16', '0.17', '0.18', '0.19', '0.20', '0.21', '0.22'}:
+    if set(body) != keys or body['build'] not in {'0.7', '0.8', '0.9', '0.10', '0.11', '0.12', '0.13', '0.14', '0.15', '0.16', '0.17', '0.18', '0.19', '0.20', '0.21', '0.22', '0.23'}:
         raise ValueError('Invalid sync result')
     stages = {'Not checked', 'Connecting status reader', 'Checking GET subscription',
               'Checking live-update subscription', 'Status subscriptions accepted',
@@ -64,7 +64,7 @@ def sync_result(body):
     return dict(body, receivedAt=int(time.time()))
 
 
-TIMELINE_BUILDS = {'0.18', '0.19', '0.20', '0.21', '0.22'}
+TIMELINE_BUILDS = {'0.18', '0.19', '0.20', '0.21', '0.22', '0.23'}
 TIMELINE_MAX_BYTES = 131072
 TIMELINE_MAX_EVENTS = 500
 TIMELINE_MAX_FIELDS = 16
@@ -344,6 +344,7 @@ def make_handler(kind, store, csrf, timeline=None):
                              '/bear-steam-0.20.apk': ('bear-steam-0.20.apk', 'application/vnd.android.package-archive'),
                              '/bear-steam-0.21.apk': ('bear-steam-0.21.apk', 'application/vnd.android.package-archive'),
                              '/bear-steam-0.22.apk': ('bear-steam-0.22.apk', 'application/vnd.android.package-archive'),
+                             '/bear-steam-0.23.apk': ('bear-steam-0.23.apk', 'application/vnd.android.package-archive'),
                              '/SHA256.txt': ('SHA256.txt', 'text/plain'),
                              '/morning': ('MORNING.md', 'text/plain; charset=utf-8'),
                              '/source.zip': ('bear-steam-source.zip', 'application/zip')}

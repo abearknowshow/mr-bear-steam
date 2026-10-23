@@ -68,7 +68,7 @@ python3 controls/setup_server.py  # install page on http://<mac_host>:8775/, sig
 4. Open Bear Steam and follow its setup: turn on its **Accessibility** service. The service has no screen-reading or gesture abilities. It only hosts the dashboard window.
 5. Sign in once: Bear shows a code, and you open `http://127.0.0.1:8776/` on your Mac and use your existing Mr. Steam account. The password never touches the panel.
 
-Then, still with the steam off: sleep and wake the screen a few times, restart the panel once, try Mr. Steam ↗ and the Bear Steam tab, and only then run a short steam session while you watch it.
+Then, still with the steam off: sleep and wake the screen a few times, restart the panel once, try Settings → Return to Mr. Steam, leave it untouched for 5 minutes to check that the screen goes to sleep, and only then run a short steam session while you watch it.
 
 ## Optional
 

@@ -9,7 +9,7 @@ let checks = 0;
 function check(value, message) { assert.ok(value, message); checks++; }
 const html = fs.readFileSync(path.join(root, 'assets/index.html'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'assets/live.js'), 'utf8');
-function page(stored = { accent: '#FFFFFF', openOnWake: true, version: '0.22' }, nativeExtras = {}) {
+function page(stored = { accent: '#FFFFFF', openOnWake: true, version: '0.23' }, nativeExtras = {}) {
  const dom = new JSDOM(html, { runScripts: 'outside-only', url: 'https://appassets.androidplatform.net/index.html' });
  const w = dom.window, calls = [], saved = [];
  const state = { connected: true, at: Date.now(), armed: true, guarded: false, busy: false, cloudBusy: false, cloudReady: true,
@@ -122,11 +122,11 @@ check(p.calls.at(-1)[4] === true && p.el('light-summary').textContent === 'Disco
 p.dom.window.close();
 
 // Settings: accent and open on wake are stored natively, never sent to equipment.
-p = page({ accent: '#FF9900', openOnWake: true, version: '0.22' });
+p = page({ accent: '#FF9900', openOnWake: true, version: '0.23' });
 check(p.w.document.documentElement.style.getPropertyValue('--accent') === '#FF9900', 'A stored accent applies at load');
 check(p.w.document.documentElement.style.getPropertyValue('--knob') === '#fff', 'Orange keeps white knobs');
 p.el('settings-open').click();
-check(p.el('accent-name').textContent === 'Orange' && p.el('version-label').textContent === 'Mr. Bear Steam 0.22', 'Settings shows the accent and version');
+check(p.el('accent-name').textContent === 'Orange' && p.el('version-label').textContent === 'Mr. Bear Steam 0.23', 'Settings shows the accent and version');
 check(/Open this experience on wake/.test(p.el('settings-content').textContent) && !/\bBear\b/.test(p.el('settings-content').textContent.replace('Mr. Bear Steam', '')), 'Settings says "this experience", not Bear');
 const order = [...p.el('settings-content').querySelectorAll('.settings-list strong')].map(n => n.textContent);
 check(order.join('|') === 'Accent color|Open this experience on wake|Bluetooth audio|Return to Mr. Steam', 'Settings rows are in the owner\'s order');
@@ -147,7 +147,7 @@ check(p.w.document.documentElement.style.getPropertyValue('--accent') === '#FFFF
 p.dom.window.close();
 // Older native layers without settings still work.
 p = page(undefined, { settings: undefined, setAccent: undefined, setOpenOnWake: undefined });
-check(p.el('version-label').textContent === 'Mr. Bear Steam 0.22' && p.calls.length === 0, 'No settings bridge: defaults, no errors');
+check(p.el('version-label').textContent === 'Mr. Bear Steam 0.23' && p.calls.length === 0, 'No settings bridge: defaults, no errors');
 p.dom.window.close();
 // 0.22: the light reports only on or off, so the page remembers the last look chosen here and shows it after a wake.
 const looks = p => p.saved.filter(s => s[0] === 'look');
@@ -188,7 +188,7 @@ check(looks(p).length === 0 && p.stored.look === undefined, 'A color tap during 
 p.dom.window.close();
 // Bad or missing stored looks fall back to Amber; an older bridge without setLook still works.
 for (const bad of [{ hue: 400, saturation: 70, brightness: 40 }, { hue: 214, saturation: 70, brightness: 0 }, { hue: '214px', saturation: 70, brightness: 40 }, { hue: 2.5, saturation: 70, brightness: 40 }, 'blue']) {
- p = page({ accent: '#FFFFFF', openOnWake: true, version: '0.22', look: bad });
+ p = page({ accent: '#FFFFFF', openOnWake: true, version: '0.23', look: bad });
  check(p.el('light-summary').textContent === 'Amber' && p.el('brightness-value').textContent === '100%', 'A bad stored look falls back to Amber: ' + JSON.stringify(bad));
  p.dom.window.close();
 }
@@ -196,4 +196,4 @@ p = page(undefined, { setLook: undefined }); p.el('lights-open').click();
 p.w.document.querySelector('[data-preset="green"]').click();
 check(p.el('light-summary').textContent === 'Green' && p.calls.length === 0, 'No setLook bridge: the choice still shows, no errors');
 p.dom.window.close();
-console.log(`Panel 0.22 UI checks: ${checks} passed`);
+console.log(`Panel 0.23 UI checks: ${checks} passed`);

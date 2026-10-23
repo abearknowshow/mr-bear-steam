@@ -1,7 +1,7 @@
 """0.21: exercise the actual dashboard/window classes against offline stubs on emulator-5580 only.
 Android 10 at 1024x600 (avd bear-support-02-api29). Taps inside the page use screen coordinates measured
-import sys,pathlib;sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]));import toolchain
 from screenshots of this fixture (WebView nodes are not exposed to the dump harness)."""
+import sys,pathlib;sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[2]));import toolchain
 from pathlib import Path
 import subprocess,time,re,json,xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'build/overlay-test'

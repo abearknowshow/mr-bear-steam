@@ -32,6 +32,14 @@ public final class PanelPolicy {
  public static boolean commandAllowed(String action,long now,long guardUntil){return "stop".equals(action)||!guarded(now,guardUntil);}
  /** Steam running (or a Start/Stop in progress) keeps the screen on; otherwise only a touch in the last five minutes. */
  public static boolean keepScreenOn(boolean steamActive,long now,long lastTouch){return steamActive||(lastTouch>0&&now>=lastTouch&&now-lastTouch<IDLE_AWAKE_MS);}
+ /** The steam-off reading that allows an idle sleep must be at least this fresh. */
+ public static final long SLEEP_STATUS_MS=10_000L;
+ /** 0.23: the panel's own screen timeout never fired (the screen stayed on 33 minutes with keep-screen-on released),
+  *  so Bear turns the screen off itself once it has been idle as long as keepScreenOn allows. Only with steam confirmed
+  *  off by a fresh reading: Mr. Steam stops steam when the screen goes off, so unknown or stale state never sleeps. */
+ public static boolean shouldSleep(boolean steamActive,boolean steamKnownOff,long statusAgeMs,long now,long lastTouch){
+  return !steamActive&&steamKnownOff&&statusAgeMs>=0&&statusAgeMs<=SLEEP_STATUS_MS&&lastTouch>0&&now>=lastTouch&&now-lastTouch>=IDLE_AWAKE_MS;
+ }
  /** 0.22: a remembered light look must be in the page's own ranges: hue 0-359, saturation 0-100, brightness 1-100. */
  public static boolean validLook(int hue,int saturation,int brightness){return hue>=0&&hue<360&&saturation>=0&&saturation<=100&&brightness>=1&&brightness<=100;}
  /** Canonical form of an allowed accent, or null for anything else. */
