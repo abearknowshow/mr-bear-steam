@@ -64,6 +64,8 @@ def uptime():return float(shell('cat','/proc/uptime').split()[0])
 for name in ('vendor','dashboard','harness'):print(adb('install','-r',OUT/(name+'.apk')).strip(),flush=True)
 # A service connect within 3 minutes of boot is treated as a restart (one automatic open). Test from a settled emulator.
 while uptime()<200:time.sleep(5)
+# Since 0.23 an idle Bear turns the screen off after 5 minutes; start every run awake.
+shell('input','keyevent',224);time.sleep(1)
 shell('settings','put','secure','enabled_accessibility_services','null');time.sleep(1)
 shell('am','force-stop',PKG);shell('am','force-stop','com.yizhong')
 shell('appops','set',PKG,'SYSTEM_ALERT_WINDOW','deny')

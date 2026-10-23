@@ -96,7 +96,7 @@ public final class DashboardService extends Service {
    // Any touch on Bear keeps the screen awake for five more minutes (PanelPolicy.keepScreenOn).
    web.setOnTouchListener((v,e)->{if(e.getActionMasked()==android.view.MotionEvent.ACTION_DOWN)lastTouch=android.os.SystemClock.elapsedRealtime();return false;});
    root.addView(web,new LinearLayout.LayoutParams(-1,0,1));web.loadUrl("https://appassets.androidplatform.net/index.html");
-   worker.scheduleWithFixedDelay(()->{if(!DashboardAccessService.available()){Timeline.note("access.unavailable");runOnUiThread(this::closeDashboard);return;}if(active)updateScreenOn();if(!active||busy)return;try{engine.refresh();setConnected(true,"poll-ok");}catch(Exception e){setConnected(false,"poll-fail");}publish();},0,2,TimeUnit.SECONDS);
+   worker.execute(this::poll);
    readWorker.scheduleWithFixedDelay(()->{
     // An uncaught throw would cancel every later tick, including reader recovery.
     try{if(!destroyed&&cloud!=null){cloud.refreshLiveReport();reopenLostReader();}queueSyncResult(readWindow.generation());}
@@ -118,6 +118,18 @@ public final class DashboardService extends Service {
    boolean failing=code!=200;
    if(failing!=timelineFailing){timelineFailing=failing;Timeline.note("timeline.upload","ok",!failing,"status",code);}
   }catch(Exception e){if(!timelineFailing){timelineFailing=true;Timeline.note("timeline.upload","ok",false,"error",Timeline.text(e));}}
+ }
+ /** One status poll, then the next: POLL_MS after a good read, RETRY_MS after a failed one (0.24, issue #8). */
+ private void poll(){
+  long next=StatusGrace.POLL_MS;
+  try{
+   if(!DashboardAccessService.available()){Timeline.note("access.unavailable");runOnUiThread(this::closeDashboard);return;}
+   if(active)updateScreenOn();if(!active||busy)return;
+   try{engine.refresh();setConnected(true,"poll-ok");}catch(Exception e){setConnected(false,"poll-fail");next=StatusGrace.RETRY_MS;}
+   publish();
+  }finally{
+   if(!destroyed)try{worker.schedule(this::poll,next,TimeUnit.MILLISECONDS);}catch(RejectedExecutionException shutDown){}
+  }
  }
  /** The only writer of {@code connected}; records each flip and what caused it. */
  private void setConnected(boolean value,String cause){
@@ -328,7 +340,7 @@ public final class DashboardService extends Service {
   if(shown!=shownConnected){
    shownConnected=shown;long age=lastSuccess==0?-1:System.currentTimeMillis()-lastSuccess;
    // The page shows "Reconnecting…" while connected is false and the last good read is under 20 s old.
-   Timeline.note("ui.connected","to",shown,"field",connected,"lastOkAgoMs",age,"why",shown?"read ok within 6 s":"no good read for 6 s");
+   Timeline.note("ui.connected","to",shown,"field",connected,"lastOkAgoMs",age,"why",shown?"read ok within grace":"no good read for "+StatusGrace.GRACE_MS/1000+" s");
   }
   Protocol.Status s=engine==null?null:engine.latest;
   String key=s==null?"none":s.on+"|"+s.possiblyOn()+"|"+s.sessionActive()+"|"+s.requestedMode+"|"+s.remaining+"|"+s.requestedMinutes+"|"+s.targetF+"|"+s.roomF+"|"+s.lightOn+"|"+s.error+"|"+s.heater+"|"+error+"|"+errorAction+"|"+lightError;

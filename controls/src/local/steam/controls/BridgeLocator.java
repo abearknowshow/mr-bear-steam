@@ -9,6 +9,22 @@ public final class BridgeLocator {
   if(!text.startsWith(prefix)||!text.endsWith(suffix))return false;
   String name=text.substring(prefix.length(),text.length()-suffix.length());return name.length()<=128&&!name.matches("(?s).*[<>|\\r\\n].*");
  }
+ /** 0.24: two HELLOs, 300 ms apart, to the bridge Bear last used. True only if that address answers as the owner SPA within 700 ms. */
+ public boolean confirm(String host){
+  byte[]hello="<HELLO>1</HELLO>".getBytes(StandardCharsets.US_ASCII);
+  try(DatagramSocket socket=new DatagramSocket()){
+   InetAddress target=InetAddress.getByName(host);long end=now()+700,next=0;int sent=0;
+   for(int packets=0;now()<end&&packets<64;){
+    if(sent<2&&now()>=next){socket.send(new DatagramPacket(hello,hello.length,target,10022));sent++;next=now()+300;}
+    socket.setSoTimeout((int)Math.max(1,Math.min(end-now(),sent<2?next-now():end-now())));
+    DatagramPacket response=new DatagramPacket(new byte[513],513);
+    try{socket.receive(response);packets++;
+     if(response.getAddress().getHostAddress().equals(host)&&matches(Arrays.copyOf(response.getData(),response.getLength()),host,response.getPort()))return true;}
+    catch(SocketTimeoutException waiting){}
+   }
+  }catch(Exception e){return false;}
+  return false;
+ }
  public String locate()throws Exception{
   Set<String> found=new HashSet<>();byte[]hello="<HELLO>1</HELLO>".getBytes(StandardCharsets.US_ASCII);
   try(DatagramSocket socket=new DatagramSocket()){

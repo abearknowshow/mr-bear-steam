@@ -24,7 +24,7 @@ public final class TimelineTest {
   Timeline.Batch b=t.batch(0,Timeline.BATCH,Timeline.BATCH_BYTES);
   check(b.count==250&&b.lost==3000,"A lagging cursor learns how many events it lost");
   JsonObject j=parse(b.json);
-  check(j.get("v").getAsInt()==1&&j.get("build").getAsString().equals("0.23")&&j.get("run").getAsLong()==clock.wall&&j.get("lost").getAsLong()==3000,"Batch envelope: v, build, run, lost");
+  check(j.get("v").getAsInt()==1&&j.get("build").getAsString().equals("0.24")&&j.get("run").getAsLong()==clock.wall&&j.get("lost").getAsLong()==3000,"Batch envelope: v, build, run, lost");
   check(new TreeSet<>(j.keySet()).equals(new TreeSet<>(Arrays.asList("v","build","run","lost","events"))),"Batch carries exactly the envelope keys");
   JsonArray events=j.getAsJsonArray("events");check(events.size()==250,"Batch holds max events");
   JsonObject first=events.get(0).getAsJsonObject();
@@ -87,9 +87,11 @@ public final class TimelineTest {
   BridgeTransport lost=new BridgeTransport(()->{throw new java.net.SocketTimeoutException("Owner Steamlinx not found on the home network.");},host->fake);try{lost.read();}catch(Exception e){}
   String gb=g.batch(before,Timeline.BATCH,Timeline.BATCH_BYTES).json;List<String>types=new ArrayList<>();
   for(JsonElement e:parse(gb).getAsJsonArray("events"))types.add(e.getAsJsonObject().get("t").getAsString());
-  check(types.equals(Arrays.asList("bridge.locate.start","bridge.locate.end","bridge.fail","bridge.reset","bridge.locate.start","bridge.locate.end","bridge.read","bridge.locate.start","bridge.locate.end","bridge.fail")),"Transport events in order: "+types);
+  check(types.equals(Arrays.asList("bridge.locate.start","bridge.locate.end","bridge.fail","bridge.reset","bridge.relink","bridge.locate.start","bridge.locate.end","bridge.read","bridge.locate.start","bridge.locate.end","bridge.fail")),"Transport events in order: "+types);
   clean(gb,"Transport events leak the bridge address");check(!gb.contains("192.168"),"No bridge address in any event");
-  JsonObject relocated=parse(gb).getAsJsonArray("events").get(5).getAsJsonObject();
+  JsonObject relink=parse(gb).getAsJsonArray("events").get(4).getAsJsonObject();
+  check(!relink.get("ok").getAsBoolean()&&relink.has("ms"),"A relink that gets no answer says so, then the search runs");
+  JsonObject relocated=parse(gb).getAsJsonArray("events").get(6).getAsJsonObject();
   check(relocated.get("sameHost").getAsBoolean()&&relocated.get("reused").getAsBoolean(),"Rediscovery says it kept the same bridge and transport");
   // The sample batch for the Mac-side contract test (tests/test_timeline.py).
   Timeline sample=new Timeline(20,clock);

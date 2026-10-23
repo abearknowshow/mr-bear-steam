@@ -17,6 +17,8 @@ def wait_shown(seconds):
   time.sleep(.5)
  return False
 def uptime():return float(shell('cat','/proc/uptime').split()[0])
+# Since 0.23 an idle Bear turns the screen off after 5 minutes; start every run awake.
+shell('input','keyevent',224);time.sleep(1)
 start();assert shown();shell('input','keyevent',223);time.sleep(2);closed()
 print('Screen off stops the dashboard service and removes both windows.',flush=True)
 shell('input','keyevent',224);shell('wm','dismiss-keyguard')

@@ -2,10 +2,13 @@ package local.steam.controls;
 /** Resolves the owner bridge on reads. A command never triggers discovery or moves itself. */
 public final class BridgeTransport implements ControlEngine.Transport {
  interface Locator{String locate()throws Exception;}interface Factory{ControlEngine.Transport create(String host)throws Exception;}
- private final Locator locator;private final Factory factory;
+ /** Whether the bridge Bear last used still answers as the owner SPA (one quick HELLO, no network-wide search). */
+ interface Confirmer{boolean confirm(String host);}
+ private final Locator locator;private final Factory factory;private final Confirmer confirmer;
  private ControlEngine.Transport current,stopTarget,lastTransport;private String lastHost;private int failures;private boolean verified;
- public BridgeTransport(boolean writes){this(()->new BridgeLocator().locate(),host->new UdpTransport(host,10022,writes));}
- BridgeTransport(Locator l,Factory f){locator=l;factory=f;}
+ public BridgeTransport(boolean writes){this(()->new BridgeLocator().locate(),host->new UdpTransport(host,10022,writes),host->new BridgeLocator().confirm(host));}
+ BridgeTransport(Locator l,Factory f){this(l,f,host->false);}
+ BridgeTransport(Locator l,Factory f,Confirmer c){locator=l;factory=f;confirmer=c;}
  private volatile java.util.function.BooleanSupplier abandon=()->false;
  public synchronized void abandonReadsWhen(java.util.function.BooleanSupplier a){abandon=a;if(lastTransport!=null)lastTransport.abandonReadsWhen(a);}
  private volatile java.util.function.BooleanSupplier idle=()->true;
@@ -15,6 +18,13 @@ public final class BridgeTransport implements ControlEngine.Transport {
   if(abandon.getAsBoolean()){Timeline.note("bridge.read","ok",false,"kind","none","ms",0,"reason","abandoned");throw new java.net.SocketTimeoutException("Read abandoned for Stop.");}
   try{
    ControlEngine.Transport candidate=current;
+   // 0.24 (issue #8): every network-wide search found the same bridge, and each cost 1.8 s. After a reset, one
+   // HELLO to the last bridge comes first; the full search runs only when that address no longer answers as the owner SPA.
+   if(candidate==null&&lastHost!=null&&lastTransport!=null){
+    long started=System.nanoTime();boolean ok=confirmer.confirm(lastHost);
+    Timeline.note("bridge.relink","ok",ok,"ms",(System.nanoTime()-started)/1000000);
+    if(ok)candidate=lastTransport;
+   }
    if(candidate==null){
     // Rediscovery usually finds the same bridge; reusing its transport keeps the cached full map,
     // so recovery is one live read instead of a 4 s full read that times out under contention.
@@ -34,7 +44,7 @@ public final class BridgeTransport implements ControlEngine.Transport {
    // The bridge drops replies when another client is reading. Rediscovery (about 1.8 s plus a
    // full map read) is kept for repeated failures, so one lost reply costs one retry, not a reset.
    // A read cut short for Stop is not counted, so Stop's own confirmation reads skip rediscovery.
-   if(!abandon.getAsBoolean()&&++failures>=2){current=null;failures=0;Timeline.note("bridge.reset","why","two failed reads; next read rediscovers");}
+   if(!abandon.getAsBoolean()&&++failures>=2){current=null;failures=0;Timeline.note("bridge.reset","why","two failed reads; next read greets the last bridge, then searches if needed");}
    else Timeline.note("bridge.fail","failures",failures,"abandon",abandon.getAsBoolean());
    throw failure;
   }

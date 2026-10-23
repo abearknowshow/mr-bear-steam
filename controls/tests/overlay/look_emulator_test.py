@@ -30,6 +30,8 @@ def uptime():return float(shell('cat','/proc/uptime').split()[0])
 def tap(xy,wait=1.2):shell('input','tap',*xy);time.sleep(wait)
 
 while uptime()<200:time.sleep(5)
+# Since 0.23 an idle Bear turns the screen off after 5 minutes; start every run awake.
+shell('input','keyevent',224);time.sleep(1)
 shell('am','start','-n','com.yizhong/local.steam.fixture.VendorFixture');time.sleep(1)
 shell('am','start','-n',PKG+'/local.steam.controls.MainActivity');assert wait_shown(8),'Bear opens'
 time.sleep(2)

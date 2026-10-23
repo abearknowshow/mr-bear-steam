@@ -29,7 +29,7 @@ Steam is controlled locally over the Steamlinx bridge on your home network (UDP)
 
 ## Status
 
-Version 0.23 runs daily on one iSteamX panel (Android 10, PX30). It has not been tried on any other panel, firmware or Mr. Steam model. If you try it, please open an issue with what you found, even if it did not work.
+Version 0.24 runs daily on one iSteamX panel (Android 10, PX30). It has not been tried on any other panel, firmware or Mr. Steam model. If you try it, please open an issue with what you found, even if it did not work.
 
 ## Getting started
 
@@ -58,7 +58,7 @@ Forks and pull requests are welcome. [ROADMAP.md](ROADMAP.md) lists ideas that a
 
 ## Credits
 
-- Built by [@abearknowshow](https://github.com/abearknowshow) with AI coding agents. Astra built the early versions (0.1 to roughly 0.15): the protocol, the overlay and the remote-support tooling. Claude Opus 5.5 in Claude Code took it from 0.16 to 0.23: speed, reliability, the new interface, start-on-wake and idle sleep.
+- Built by [@abearknowshow](https://github.com/abearknowshow) with AI coding agents. Astra built the early versions (0.1 to roughly 0.15): the protocol, the overlay and the remote-support tooling. Claude Opus 5.5 in Claude Code took it from 0.16 to 0.24: speed, reliability, the new interface, start-on-wake and idle sleep.
 - The Steamlinx wire format was learned from [gazoodle/geckolib](https://github.com/gazoodle/geckolib) (GPL-3.0), and the cloud lighting from [pedantique/mrsteam-homeassistant](https://github.com/pedantique/mrsteam-homeassistant) (MIT).
 - Third-party licenses are in [NOTICE](NOTICE) and `controls/assets/notices/`.
 

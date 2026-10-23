@@ -22,6 +22,19 @@ public final class BridgeTransportTest {
   q.abandonReadsWhen(()->stopWaiting[0]);q.read();check(quiet.abandon!=null&&!quiet.abandon.getAsBoolean(),"Stop check reaches the bridge transport");
   stopWaiting[0]=true;fails(q::read);fails(q::read);quiet.fail=true;fails(q::read);check(made[0]==1,"Abandoned reads never rediscover");
   stopWaiting[0]=false;quiet.fail=false;q.read();check(made[0]==1,"Abandoned reads are not counted as bridge failures");q.write("temperature",113);check(quiet.writes.equals(Arrays.asList("temperature:113")),"Writes resume after a good read");
+  // 0.24 quick relink (issue #8): after two lost reads, one HELLO to the last bridge comes before any network-wide search.
+  int[]searches={0},hellos={0},made2={0};boolean[]answers={true};String[]where={"home"};Fake kept=new Fake(status),moved=new Fake(status);
+  BridgeTransport k=new BridgeTransport(()->{searches[0]++;return where[0];},a->{made2[0]++;return a.equals("home")?kept:moved;},a->{hellos[0]++;return answers[0]&&a.equals("home");});
+  k.read();check(searches[0]==1&&hellos[0]==0,"The first read searches; there is no last bridge to greet yet");
+  kept.fail=true;fails(k::read);fails(k::read);kept.fail=false;k.read();
+  check(hellos[0]==1&&searches[0]==1&&made2[0]==1,"After a reset the last bridge is greeted and reused, with no search and no new transport");
+  k.write("start",1);check(kept.writes.equals(Arrays.asList("start:1")),"The good read after a relink verifies the bridge for commands");
+  kept.fail=true;fails(k::read);fails(()->k.write("time",15));check(kept.writes.size()==1,"A lost read after a relink blocks commands again");kept.fail=false;k.read();
+  kept.fail=true;fails(k::read);fails(k::read);answers[0]=false;where[0]="away";k.read();
+  check(hellos[0]==2&&searches[0]==2&&made2[0]==2,"A bridge that no longer answers falls back to the full search");
+  moved.writes.clear();k.write("temperature",110);check(moved.writes.equals(Arrays.asList("temperature:110"))&&kept.writes.size()==1,"Writes follow the bridge the search found");
+  kept.fail=false;moved.fail=true;fails(k::read);fails(k::read);answers[0]=true;moved.fail=false;k.read();
+  check(hellos[0]==3&&searches[0]==3,"The greeting goes to the bridge last used, not an earlier one");
   Fake invalid=new Fake(status);invalid.fail=true;BridgeTransport bad=new BridgeTransport(()->"bad",a->invalid);fails(bad::read);fails(()->bad.write("stop",0));check(invalid.writes.isEmpty(),"Unvalidated candidate never becomes stop target");
   check(BridgeLocator.matches(("<HELLO>"+Protocol.SPA+"|My Steamer</HELLO>").getBytes("UTF-8"),"192.168.1.9",10022),"Exact owner accepted");
   check(!BridgeLocator.matches("<HELLO>SPA00:11:22:33:44:55|Other</HELLO>".getBytes("UTF-8"),"192.168.1.9",10022),"Foreign identity refused");
