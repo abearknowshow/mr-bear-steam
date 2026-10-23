@@ -17,7 +17,7 @@ const PRESETS=[
  {id:'warm',name:'Warm white',hue:36,saturation:22},{id:'cool',name:'Cool white',hue:0,saturation:0},{id:'amber',name:'Amber',hue:33,saturation:58},
  {id:'red',name:'Red',hue:2,saturation:72},{id:'pink',name:'Pink',hue:330,saturation:58},{id:'violet',name:'Violet',hue:262,saturation:62},
  {id:'blue',name:'Blue',hue:214,saturation:70},{id:'aqua',name:'Aqua',hue:177,saturation:72},{id:'green',name:'Green',hue:143,saturation:65},{id:'disco',name:'Disco'}];
-let prefs={accent:'#FFFFFF',openOnWake:true,version:'0.25'};
+let prefs={accent:'#FFFFFF',openOnWake:true,version:'0.26'};
 // Only device telemetry selects the power state. Preferences and PUBACK cannot.
 function selectedLight(){const r=status.lightReport,now=Date.now();return r&&typeof r.on==='boolean'&&now>=r.at&&now<r.freshUntil?r.on:null;}
 function native(){return window.SteamNative||null;}
@@ -26,7 +26,8 @@ function trace(type,fields){try{const n=native();if(n&&typeof n.trace==='functio
 let shownStatus=null;
 // Smooth a single missed UDP poll. Native commands still require their own fresh reads.
 // After a sustained outage, only Stop and the original-app escape remain available.
-function recentStatus(){const age=Date.now()-Number(status.at);return Boolean(status.snapshot)&&age>=0&&age<20000;}
+// 0.26: while steam is confirmed off and nothing is waiting, the service may report a quiet bridge for up to a minute.
+function recentStatus(){const age=Date.now()-Number(status.at);return Boolean(status.snapshot)&&age>=0&&(age<20000||Boolean(status.quiet)&&age<60000);}
 // 0.21: for 1.5 s after an automatic open everything but Stop is ignored (native refuses it too).
 function guarded(){return Boolean(status.guarded);}
 function send(action,value=0,minutes=0){if(native())native().command(action,value,minutes);}
@@ -198,7 +199,7 @@ function renderSettings(known,online,live,light){
  $('wake-toggle').setAttribute('aria-checked',String(Boolean(prefs.openOnWake)));
  $('steam-conn').dataset.ok=String(live);$('steam-conn-text').textContent=!known?'Connecting…':live?'Connected':online?'Reconnecting…':'Not connected';
  $('light-conn').dataset.ok=String(Boolean(status.cloudReady));$('light-conn-text').textContent=status.cloudReady?(light===null?'Connected · status unavailable':'Connected'):status.cloudBusy?'Connecting…':'Not connected';
- $('version-label').textContent='Mr. Bear Steam '+(prefs.version||'0.25');
+ $('version-label').textContent='Mr. Bear Steam '+(prefs.version||'0.26');
 }
 
 function hsvRgb(hue,saturation){
