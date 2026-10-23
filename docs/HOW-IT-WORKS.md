@@ -34,7 +34,7 @@ The iSteamX wall panel is an Android 10 tablet (PX30) whose home screen is the M
 | "Feature not available" when asking for the normal overlay permission | The firmware disables `SYSTEM_ALERT_WINDOW` | Host the window from an accessibility service that asks for **no** capabilities and **no** events. It cannot read the screen or tap anything. |
 | No ADB over Wi-Fi, no reachable USB port | Firmware | A separate owner-started Remote Support app that sends screenshots and coordinate taps through a relay on the Mac. A tap needs a fresh frame. |
 | Stop failed in 0.1 | Every command reused sequence number 1 | Advancing sequence numbers. Only Stop may be resent. |
-| About 1 in 5 bridge requests silently dropped (60 of 75) | The bridge drops requests from a **new** client id | Keep one client id per transport: 75 of 75. |
+| About 1 in 5 bridge requests silently dropped (60 of 75) | The bridge drops requests from a **new** client id | Keep one client id per transport: 75 of 75 in a read-only test. In daily use about 1 read in 25 still misses and "Reconnecting…" shows briefly; see [#8](https://github.com/abearknowshow/mr-bear-steam/issues/8). |
 | Reads came back with another reader's data | The bridge mixes up concurrent readers | Never run a second reader while Bear is open. |
 | Full status read took 3.7 to 4 s | Reading the whole register map | Read the 42-byte live block instead: about 300 ms. |
 | The bridge's address changed (DHCP) | Home network | Discover the bridge by its identity on your subnet. Writes never trigger discovery. |
